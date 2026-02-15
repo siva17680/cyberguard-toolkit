@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card p-5 col-md-8 mx-auto">
+    <h2 class="text-center mb-4"><i class="bi bi-shield-exclamation text-danger"></i> Phishing Link Scanner</h2>
+    
+    <div class="input-group mb-4">
+        <input type="text" id="urlInput" class="form-control" placeholder="https://example.com/login...">
+        <button class="btn btn-custom" onclick="scanUrl()">Scan URL</button>
+    </div>
+
+    <div id="resultArea" class="d-none text-center">
+        <h1 id="verdict" class="fw-bold display-4"></h1>
+        <div id="flags" class="mt-3 text-start"></div>
+    </div>
+</div>
+
+<script>
+function scanUrl() {
+    let url = document.getElementById('urlInput').value;
+    fetch('{{ url_for("phishing_detector.analyze") }}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({url: url})
+    })
+    .then(r => r.json())
+    .then(data => {
+        let res = document.getElementById('resultArea');
+        res.classList.remove('d-none');
+        
+        let v = document.getElementById('verdict');
+        v.innerText = data.verdict;
+        v.className = `fw-bold display-4 text-${data.color}`;
+
+        let f = document.getElementById('flags');
+        f.innerHTML = data.flags.map(flag => `<div class="alert alert-dark"><i class="bi bi-exclamation-triangle"></i> ${flag}</div>`).join('');
+    });
+}
+</script>
+{% endblock %}

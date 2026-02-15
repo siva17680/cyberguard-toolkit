@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-5 border-0 shadow-lg">
+            <h2 class="text-center mb-4 fw-bold text-white">
+                <i class="bi bi-hash text-warning"></i> Secure Hash Generator
+            </h2>
+
+            <form id="hashForm">
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-info">Algorithm</label>
+                    <select class="form-select form-select-lg" id="algorithm">
+                        <option value="sha256">SHA-256 (Recommended)</option>
+                        <option value="sha512">SHA-512 (Strongest)</option>
+                        <option value="md5">MD5 (Weak - for verification only)</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-info d-block">Input Type</label>
+                    <div class="btn-group w-100" role="group">
+                        
+                        <input type="radio" class="btn-check" name="inputType" id="typeText" value="text" checked onchange="toggleInput('text')">
+                        <label class="btn btn-outline-primary p-3" for="typeText">
+                            <i class="bi bi-card-text me-2"></i> Text
+                        </label>
+
+                        <input type="radio" class="btn-check" name="inputType" id="typeFile" value="file" onchange="toggleInput('file')">
+                        <label class="btn btn-outline-primary p-3" for="typeFile">
+                            <i class="bi bi-file-earmark me-2"></i> File
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-4" id="textInputSection">
+                    <textarea class="form-control" id="textInput" rows="5" placeholder="Enter text to hash..."></textarea>
+                </div>
+
+                <div class="mb-4 d-none" id="fileInputSection">
+                    <input class="form-control form-control-lg" type="file" id="fileInput">
+                </div>
+
+                <button type="submit" class="btn btn-custom w-100 btn-lg mt-3">GENERATE HASH</button>
+            </form>
+
+            <div class="mt-5 d-none" id="resultSection">
+                <h5 class="fw-bold mb-3 text-success">Generated Hash:</h5>
+                <div class="input-group">
+                    <input type="text" class="result-box form-control font-monospace" id="resultHash" readonly>
+                    <button class="btn btn-outline-info" type="button" onclick="copyToClipboard('resultHash')">
+                        <i class="bi bi-clipboard"></i> Copy
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleInput(type) {
+    const textSection = document.getElementById('textInputSection');
+    const fileSection = document.getElementById('fileInputSection');
+
+    if (type === 'text') {
+        textSection.classList.remove('d-none');
+        fileSection.classList.add('d-none');
+    } else {
+        textSection.classList.add('d-none');
+        fileSection.classList.remove('d-none');
+    }
+}
+
+document.getElementById('hashForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const algorithm = document.getElementById('algorithm').value;
+    const inputType = document.querySelector('input[name="inputType"]:checked').value;
+    const resultSection = document.getElementById('resultSection');
+    const resultHash = document.getElementById('resultHash');
+    
+    let formData = new FormData();
+    formData.append('algorithm', algorithm);
+
+    if (inputType === 'text') {
+        const text = document.getElementById('textInput').value;
+        if (!text) { alert("Please enter some text."); return; }
+        formData.append('text', text);
+    } else {
+        const file = document.getElementById('fileInput').files[0];
+        if (!file) { alert("Please select a file."); return; }
+        formData.append('file', file);
+    }
+
+    try {
+        const response = await fetch("{{ url_for('hash_generator.generate') }}", {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            resultHash.value = data.hash;
+            resultSection.classList.remove('d-none');
+        } else {
+            alert("Error: " + data.message);
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("An error occurred. Check console.");
+    }
+});
+</script>
+{% endblock %}

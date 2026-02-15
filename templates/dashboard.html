@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h1 class="fw-bold"><i class="bi bi-shield-lock text-info"></i> Security Hub</h1>
+        <p class="text-light opacity-75">Select a tool to begin your analysis.</p>
+    </div>
+    <div class="col-md-4 text-end">
+        {% if user.role == 'admin' %}
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-warning shadow-lg">
+            <i class="bi bi-speedometer2"></i> Admin Console
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card p-3 border-0 shadow-lg" style="background: rgba(0, 210, 255, 0.15); border-left: 5px solid #00d2ff !important;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold text-white mb-1"><i class="bi bi-cpu-fill"></i> Host System Specs</h5>
+                    <p class="text-info mb-0 small opacity-75">System Accurate RAM info</p>
+                </div>
+                <div class="d-flex gap-4">
+                    <div class="text-end">
+                        <h2 class="fw-bold text-white mb-0">{{ total_ram }} GB</h2>
+                        <small class="text-white-50">Total Physical RAM</small>
+                    </div>
+                    <div class="text-end border-start ps-4 border-secondary">
+                        <h2 class="fw-bold text-white mb-0">{{ free_ram }} GB</h2>
+                        <small class="text-success">Available RAM</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    
+    <div class="col-md-4">
+        <a href="{{ url_for('password_checker.index') }}" class="text-decoration-none">
+            <div class="card h-100 p-4 border-0 shadow-sm tool-card">
+                <div class="mb-3 text-success"><i class="bi bi-shield-check display-4"></i></div>
+                <h4 class="fw-bold text-white">Password Strength</h4>
+                <p class="text-muted small">Analyze password entropy, complexity, and crack time estimation.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <a href="{{ url_for('password_generator.index') }}" class="text-decoration-none">
+            <div class="card h-100 p-4 border-0 shadow-sm tool-card">
+                <div class="mb-3 text-info"><i class="bi bi-shuffle display-4"></i></div>
+                <h4 class="fw-bold text-white">Secure Generator</h4>
+                <p class="text-muted small">Generate cryptographically secure passwords with custom rules.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <a href="{{ url_for('hash_generator.index') }}" class="text-decoration-none">
+            <div class="card h-100 p-4 border-0 shadow-sm tool-card">
+                <div class="mb-3 text-warning"><i class="bi bi-hash display-4"></i></div>
+                <h4 class="fw-bold text-white">Hash Generator</h4>
+                <p class="text-muted small">Create SHA-256/MD5 hashes for text or file integrity checks.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <a href="{{ url_for('encryption_tool.index') }}" class="text-decoration-none">
+            <div class="card h-100 p-4 border-0 shadow-sm tool-card">
+                <div class="mb-3 text-danger"><i class="bi bi-key-fill display-4"></i></div>
+                <h4 class="fw-bold text-white">AES Encryption</h4>
+                <p class="text-muted small">Encrypt and decrypt sensitive text/files using AES-256-GCM.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <a href="{{ url_for('phishing_detector.index') }}" class="text-decoration-none">
+            <div class="card h-100 p-4 border-0 shadow-sm tool-card">
+                <div class="mb-3 text-primary"><i class="bi bi-exclamation-triangle-fill display-4"></i></div>
+                <h4 class="fw-bold text-white">Phishing Scanner</h4>
+                <p class="text-muted small">Heuristic analysis of URLs to detect suspicious domains.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <a href="{{ url_for('steganography.index') }}" class="text-decoration-none">
+            <div class="card h-100 p-4 border-0 shadow-sm tool-card">
+                <div class="mb-3 text-white"><i class="bi bi-eye-slash-fill display-4"></i></div>
+                <h4 class="fw-bold text-white">Steganography</h4>
+                <p class="text-muted small">Hide secret text messages inside image files (LSB).</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <a href="{{ url_for('metadata_checker.index') }}" class="text-decoration-none">
+            <div class="card h-100 p-4 border-0 shadow-sm tool-card">
+                <div class="mb-3 text-secondary"><i class="bi bi-file-earmark-medical display-4"></i></div>
+                <h4 class="fw-bold text-white">Metadata Extractor</h4>
+                <p class="text-muted small">Reveal hidden EXIF data from Images and PDFs.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <a href="{{ url_for('directory_bruteforce.index') }}" class="text-decoration-none">
+            <div class="card h-100 p-4 border-0 shadow-sm tool-card">
+                <div class="mb-3 text-success"><i class="bi bi-search display-4"></i></div>
+                <h4 class="fw-bold text-white">Directory Scanner</h4>
+                <p class="text-muted small">Ethically scan websites for common hidden paths.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <a href="{{ url_for('password_cracker.index') }}" class="text-decoration-none">
+            <div class="card h-100 p-4 border-0 shadow-sm tool-card">
+                <div class="mb-3 text-danger"><i class="bi bi-hammer display-4"></i></div>
+                <h4 class="fw-bold text-white">Hash Cracker</h4>
+                <p class="text-muted small">Educational dictionary attack tool for MD5/SHA256.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <a href="{{ url_for('browser_analyzer.index') }}" class="text-decoration-none">
+            <div class="card h-100 p-4 border-0 shadow-sm tool-card">
+                <div class="mb-3 text-info"><i class="bi bi-browser-chrome display-4"></i></div>
+                <h4 class="fw-bold text-white">Browser Fingerprint</h4>
+                <p class="text-muted small">See what information your browser leaks to websites.</p>
+            </div>
+        </a>
+    </div>
+    
+    <div class="col-md-4">
+        <a href="{{ url_for('password_manager.index') }}" class="text-decoration-none">
+            <div class="card h-100 p-4 border-0 shadow-sm tool-card">
+                <div class="mb-3 text-white"><i class="bi bi-safe display-4"></i></div>
+                <h4 class="fw-bold text-white">Password Manager</h4>
+                <p class="text-muted small">Securely store and retrieve your passwords.</p>
+            </div>
+        </a>
+    </div>
+
+</div>
+
+<style>
+.tool-card {
+    background: rgba(255, 255, 255, 0.05);
+    transition: transform 0.3s ease, background 0.3s ease;
+}
+.tool-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3) !important;
+}
+</style>
+{% endblock %}

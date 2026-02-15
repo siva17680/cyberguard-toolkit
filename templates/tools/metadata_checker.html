@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card p-5 col-md-8 mx-auto">
+    <h2 class="text-center mb-4"><i class="bi bi-file-earmark-medical text-primary"></i> Metadata Extractor</h2>
+    
+    <form method="POST" enctype="multipart/form-data" class="mb-4">
+        <div class="input-group">
+            <input type="file" name="file" class="form-control" accept=".jpg,.jpeg,.png,.pdf" required>
+            <button class="btn btn-custom" type="submit">Extract Data</button>
+        </div>
+        <small class="text-muted">Supports JPG, PNG, PDF. Files are processed in memory.</small>
+    </form>
+
+    {% if metadata %}
+    <h4 class="text-info border-bottom pb-2">Hidden Information Found:</h4>
+    <table class="table table-dark table-hover mt-3">
+        <thead>
+            <tr>
+                <th>Property</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for key, value in metadata.items() %}
+            <tr>
+                <td class="fw-bold text-warning">{{ key }}</td>
+                <td class="text-break">{{ value }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+{% endblock %}

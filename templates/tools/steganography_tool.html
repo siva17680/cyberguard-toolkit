@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h3 class="text-success">Hide Data (Encode)</h3>
+            <form action="{{ url_for('steganography.hide') }}" method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label>Upload Image (PNG/JPG)</label>
+                    <input type="file" name="image" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label>Secret Message</label>
+                    <input type="text" name="message" class="form-control" placeholder="Secrets go here..." required>
+                </div>
+                <button type="submit" class="btn btn-success w-100">Download Encoded Image</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h3 class="text-info">Extract Data (Decode)</h3>
+            <form action="{{ url_for('steganography.extract') }}" method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label>Upload Encoded Image</label>
+                    <input type="file" name="image" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-info w-100">Extract Message</button>
+            </form>
+            
+            {% if extracted_text %}
+            <div class="alert alert-dark mt-3">
+                <strong>Found Secret:</strong> {{ extracted_text }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="col-md-5">
+        <div class="card p-5 shadow-lg">
+            <div class="text-center mb-4">
+                <i class="bi bi-shield-lock-fill text-info display-1"></i>
+                <h2 class="fw-bold mt-2">Restricted Login</h2>
+                <p class="text-muted">Authorized Personnel Only</p>
+            </div>
+
+            <div id="alertBox" class="alert d-none"></div>
+
+            <form id="authForm" onsubmit="handleLogin(event)">
+                <div class="mb-3">
+                    <label class="form-label">Email Address</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent text-white border-end-0"><i class="bi bi-envelope"></i></span>
+                        <input type="email" id="email" class="form-control border-start-0 ps-0" placeholder="admin@cyberguard.com" autocomplete="username" required>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent text-white border-end-0"><i class="bi bi-key"></i></span>
+                        <input type="password" id="password" class="form-control border-start-0 ps-0" placeholder="••••••••" autocomplete="current-password" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-custom w-100 py-2 mb-3" id="submitBtn">
+                    <span id="btnText">Login</span>
+                    <span id="btnSpinner" class="spinner-border spinner-border-sm d-none"></span>
+                </button>
+            </form>
+            
+            <div class="text-center mt-3">
+                <small class="text-muted">Access is restricted. Contact your Administrator for credentials.</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ✅ YOUR SPECIFIC CONFIGURATION
+    const firebaseConfig = {
+        apiKey: "AIzaSyDaAWUIZJMLUqHaW-26M7Bu_U--Tj_4iQ4",
+        authDomain: "cyb3-9e1d3.firebaseapp.com",
+        databaseURL: "https://cyb3-9e1d3-default-rtdb.firebaseio.com",
+        projectId: "cyb3-9e1d3",
+        storageBucket: "cyb3-9e1d3.firebasestorage.app",
+        messagingSenderId: "819288026895",
+        appId: "1:819288026895:web:e6a543c8678bf9a6c4187a",
+        measurementId: "G-ZCNSLD3LVL"
+    };
+
+    // Initialize Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+        console.log("Firebase Initialized");
+    }
+    const auth = firebase.auth();
+
+    async function handleLogin(event) {
+        event.preventDefault();
+        
+        console.log("1. Starting Login Process..."); // DEBUG LOG
+        
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const alertBox = document.getElementById('alertBox');
+        const btnText = document.getElementById('btnText');
+        const spinner = document.getElementById('btnSpinner');
+
+        // UI Loading State
+        alertBox.className = 'alert d-none';
+        btnText.classList.add('d-none');
+        spinner.classList.remove('d-none');
+
+        try {
+            // 1. Authenticate with Firebase
+            console.log("2. Sending credentials to Google..."); // DEBUG LOG
+            const userCredential = await auth.signInWithEmailAndPassword(email, password);
+            console.log("3. Google Auth Success. User:", userCredential.user.email); // DEBUG LOG
+            
+            // 2. Get Secure Token
+            console.log("4. Requesting ID Token..."); // DEBUG LOG
+            const idToken = await userCredential.user.getIdToken();
+            console.log("5. Token Received."); // DEBUG LOG
+            
+            // 3. Send Token to Flask Backend
+            console.log("6. Sending Token to Python Backend..."); // DEBUG LOG
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idToken: idToken })
+            });
+
+            console.log("7. Backend Responded:", response.status); // DEBUG LOG
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                console.log("8. Success! Redirecting..."); // DEBUG LOG
+                window.location.href = result.redirect;
+            } else {
+                throw new Error(result.message || 'Authentication failed on server');
+            }
+
+        } catch (error) {
+            console.error("❌ LOGIN ERROR:", error); // DEBUG LOG
+            
+            alertBox.className = 'alert alert-danger';
+            alertBox.innerText = "Error: " + error.message;
+            
+            // Reset Button
+            btnText.classList.remove('d-none');
+            spinner.classList.add('d-none');
+        }
+    }
+</script>
+{% endblock %}

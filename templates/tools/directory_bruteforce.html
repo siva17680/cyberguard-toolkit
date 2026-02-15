@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card p-5 col-md-8 mx-auto">
+    <h2 class="text-center mb-4"><i class="bi bi-search text-success"></i> Directory Scanner</h2>
+    <div class="alert alert-warning"><i class="bi bi-exclamation-triangle-fill"></i> <strong>Ethical Warning:</strong> Only scan domains you own or have permission to test.</div>
+
+    <div class="input-group mb-3">
+        <input type="text" id="targetUrl" class="form-control" placeholder="example.com">
+        <button class="btn btn-custom" onclick="startScan()">Start Scan</button>
+    </div>
+
+    <div id="resultsArea"></div>
+</div>
+
+<script>
+function startScan() {
+    let url = document.getElementById('targetUrl').value;
+    let resArea = document.getElementById('resultsArea');
+    resArea.innerHTML = '<div class="text-center"><div class="spinner-border text-info"></div><p>Scanning common paths...</p></div>';
+
+    fetch('{{ url_for("directory_bruteforce.scan") }}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({url: url})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if(data.results.length === 0) {
+            resArea.innerHTML = '<div class="alert alert-secondary">No common paths found.</div>';
+            return;
+        }
+        
+        let html = '<table class="table table-dark mt-3"><thead><tr><th>Path</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+        data.results.forEach(item => {
+            let color = item.status === 200 ? 'text-success' : 'text-warning';
+            html += `<tr>
+                <td class="font-monospace">${item.path}</td>
+                <td class="${color} fw-bold">${item.status}</td>
+                <td><a href="${item.url}" target="_blank" class="btn btn-sm btn-outline-light">Visit</a></td>
+            </tr>`;
+        });
+        html += '</tbody></table>';
+        resArea.innerHTML = html;
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card p-5 col-md-8 mx-auto">
+    <h2 class="text-center mb-4"><i class="bi bi-key-fill text-info"></i> AES-256 Encryption</h2>
+    
+    <div class="mb-3">
+        <label>Secret Password (Key)</label>
+        <input type="password" id="encPass" class="form-control" placeholder="Used to lock/unlock data">
+    </div>
+
+    <div class="mb-3">
+        <label>Data (Text or Base64)</label>
+        <textarea id="encInput" class="form-control" rows="4"></textarea>
+    </div>
+
+    <div class="row">
+        <div class="col-6">
+            <button onclick="process('encrypt')" class="btn btn-primary w-100">Encrypt</button>
+        </div>
+        <div class="col-6">
+            <button onclick="process('decrypt')" class="btn btn-outline-info w-100">Decrypt</button>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <label>Output:</label>
+        <textarea id="encOutput" class="form-control bg-dark text-light font-monospace" rows="4" readonly></textarea>
+    </div>
+</div>
+
+<script>
+function process(action) {
+    let formData = new FormData();
+    formData.append('action', action);
+    formData.append('password', document.getElementById('encPass').value);
+    formData.append('text', document.getElementById('encInput').value);
+
+    fetch('{{ url_for("encryption_tool.process") }}', { method: 'POST', body: formData })
+    .then(r => r.json())
+    .then(data => {
+        if(data.error) alert(data.error);
+        else document.getElementById('encOutput').value = data.result;
+    });
+}
+</script>
+{% endblock %}

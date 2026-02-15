@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="bi bi-speedometer2 text-warning"></i> Admin Console</h2>
+    <button class="btn btn-success shadow" data-bs-toggle="modal" data-bs-target="#addUserModal">
+        <i class="bi bi-person-plus-fill"></i> Create New User
+    </button>
+</div>
+
+<div class="card p-4 mb-5 border-0 shadow-sm" style="background: rgba(255,255,255,0.05);">
+    <h4 class="text-info mb-3 border-bottom pb-2"><i class="bi bi-people-fill"></i> User Management</h4>
+    <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if users %}
+                    {% for uid, u in users.items() %}
+                    <tr id="row-{{ uid }}">
+                        <td>{{ u.email }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'warning' if u.role=='admin' else 'secondary' }}">{{ u.role }}</span>
+                        </td>
+                        <td>
+                            {% if u.active is not defined or u.active %}
+                                <span class="badge bg-success" id="status-{{ uid }}">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger" id="status-{{ uid }}">Disabled</span>
+                            {% endif %}
+                        </td>
+                        <td><small class="text-muted">{{ u.created_at[:16] if u.created_at else 'N/A' }}</small></td>
+                        <td class="text-end">
+                            {% if u.email != session['user']['email'] %}
+                                <button class="btn btn-sm btn-outline-light me-1" onclick="toggleUser('{{ uid }}')" title="Enable/Disable">
+                                    <i class="bi bi-power"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteUser('{{ uid }}')" title="Delete User">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            {% else %}
+                                <span class="text-muted small fst-italic me-2">Current User</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="5" class="text-center text-muted">No users found in database.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card p-4 border-0 shadow-sm" style="background: rgba(255,255,255,0.05);">
+    <h4 class="text-warning mb-3 border-bottom pb-2"><i class="bi bi-list-check"></i> System Activity Logs</h4>
+    <div style="max-height: 400px; overflow-y: auto;">
+        <table class="table table-dark table-sm table-striped">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Duration / Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if logs %}
+                    {% for log in logs %}
+                    <tr>
+                        <td class="font-monospace text-warning"><small>{{ log.timestamp[:19] }}</small></td>
+                        <td>{{ log.email }}</td>
+                        <td>
+                            {% if log.action == 'login' %}
+                                <span class="text-success fw-bold">LOG IN</span>
+                            {% else %}
+                                <span class="text-danger fw-bold">LOG OUT</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if log.duration %}
+                                <span class="badge bg-info text-dark"><i class="bi bi-stopwatch"></i> {{ log.duration }}</span>
+                            {% else %}
+                                <small class="text-muted">-</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="4" class="text-center text-muted">No activity logs found.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Create New User</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createUserForm">
+                    <div class="mb-3">
+                        <label>Email Address</label>
+                        <input type="email" name="email" class="form-control bg-secondary text-white border-0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Password</label>
+                        <input type="password" name="password" class="form-control bg-secondary text-white border-0" required minlength="6">
+                    </div>
+                    <div class="mb-3">
+                        <label>Role</label>
+                        <select name="role" class="form-select bg-secondary text-white border-0">
+                            <option value="user">Standard User</option>
+                            <option value="admin">Administrator</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Create Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 1. Create User Logic
+document.getElementById('createUserForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    // Close modal
+    const modalEl = document.getElementById('addUserModal');
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    modal.hide();
+
+    fetch("{{ url_for('admin.create_user') }}", {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if(data.status === 'success') {
+            alert(data.message);
+            location.reload(); // Refresh to show new user
+        } else {
+            alert("Error: " + data.message);
+        }
+    });
+});
+
+// 2. Toggle Status Logic
+function toggleUser(uid) {
+    if(!confirm("Are you sure you want to change this user's active status?")) return;
+    
+    fetch(`/admin/toggle_status/${uid}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+        if(data.status === 'success') {
+            location.reload();
+        } else {
+            alert(data.message);
+        }
+    });
+}
+
+// 3. Delete User Logic
+function deleteUser(uid) {
+    if(!confirm("WARNING: This will permanently delete the user. Continue?")) return;
+    
+    fetch(`/admin/delete_user/${uid}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+        if(data.status === 'success') {
+            document.getElementById(`row-${uid}`).remove();
+        } else {
+            alert(data.message);
+        }
+    });
+}
+</script>
+{% endblock %}
